@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
+import authRoutes from "./routes/auth";
 
 var cors = require('cors')
 dotenv.config();
@@ -8,17 +9,19 @@ const prisma = new PrismaClient();
 const app = express();
 const port = process.env.PORT || 4000;
 
+//--- Middleware
 app.use(cors({
-    origin: 'http://localhost:3000', // Adjust this to match your frontend's URL
+    origin: 'http://localhost:3000',
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type'],
 }));
-
 app.use(express.json());
+
+//--- Routes
+app.use("/auth", authRoutes);
 
 app.get('/', async (req, res) => {
     try {
-        // Example: Fetch some data from the database
         const users = await prisma.user.findMany();
         res.json(users);
     } catch (error) {
@@ -27,12 +30,13 @@ app.get('/', async (req, res) => {
 });
 
 app.post('/users', async (req, res) => {
-    const { name, email } = req.body;
+    const { name, email, password } = req.body;
     try {
         const newUser = await prisma.user.create({
             data: {
                 name,
                 email,
+                password
             },
         });
         res.status(201).json(newUser);
@@ -41,6 +45,7 @@ app.post('/users', async (req, res) => {
     }
 });
 
+//-- Server
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
