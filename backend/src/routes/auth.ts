@@ -10,9 +10,13 @@ const SECRET_KEY = "your_secret_key";
 
 // Signup Route
 router.post("/signup", async (req:Request, res:Response): Promise<any> => {
-  try {
-    const { name, email, password } = req.body;
+  const { name, email, password } = req.body;
 
+  if (!name.trim()) return res.status(400).json({ error: "Name is required." });
+  if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: "Invalid email format." });
+  if (password.length < 4) return res.status(400).json({ error: "Password must be at least 4 characters." });
+
+  try {
     // Check if a user already exists
     const existingUser = await prisma.user.findFirst();
     if (existingUser) {
